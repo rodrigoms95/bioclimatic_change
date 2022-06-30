@@ -1,3 +1,18 @@
+#Agregar archivos y carpetas a ignorar.
+data/
+results/
+
+*.code-workspace
+*.csv
+*.json
+*.zip
+*.dat
+*.kmz
+*.gz
+*.nc
+*.stn
+*.grib
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
