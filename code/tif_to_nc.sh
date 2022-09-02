@@ -62,14 +62,14 @@ do
     FNAME=$FHEAD$RES'_'$v
     DIR_D=$PATH_D'TIFF/'$f'/'
     FILE_D=$DIR_D$FNAME$TIF
-    DIR_R=$PATH_D'NC/'$FTYPE'/'$FNAME'/'
+    DIR_R=$PATH_D'NC/'$FTYPE'/'
     FILE_R=$DIR_R$FNAME$NC
 
     echo ''
     echo 'Processing '$FNAME'...'
 
     mkdir -p $DIR_R
-    gdal_translate -of NetCDF $FILE_D $FILE_R
+    gdal_translate -q -of NetCDF $FILE_D $FILE_R
 
     echo ''
     echo $FNAME' processed.'
