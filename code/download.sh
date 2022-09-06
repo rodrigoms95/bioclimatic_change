@@ -26,15 +26,18 @@ cd $DIR
 URL="https://geodata.ucdavis.edu/cmip6/$RES/"
 wget -r -np -nH -nd --cut-dirs=3 -R index.html -e robots=off $URL
 rm -r "index.html"*
+rm -r "wget-log"
 # Organizamos en carpetas.
 for v in ${VARS[@]}; do
     for s in ${SSP[@]}; do
         mkdir -p "$v/ssp$s/"
-        for n in "wc2.1_$RES""_""$v*$s*"; do
-            mv -f $n "$v/$s/$n"
+        for n in "wc2.1_$RES""_""$v"*"$s"*; do
+            mv -f $n "$v/ssp$s/$n"
         done
     done
 done
+# Limpiamos.
+rm -r bioc
 
 # Archivos históricos.
 VARS=( "tmax" "tmin" "prec" "tavg" "srad" "wind" "vapr" "elev" )
