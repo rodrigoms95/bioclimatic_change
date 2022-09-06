@@ -4,76 +4,114 @@
 set -e
 
 # Default options for conda and user.
-RES='10m'
+RES="10m"
 # Read arguments.
-while getopts r flag
-do
-    case '${flag}' in
-        r) RES=${OPTARG};;
+while getopts r flag; do
+    case "${flag}" in
+        r) RES="${OPTARG}";;
     esac
 done
 
 # Cambiar al folder local!!!
-CONDA_SOURCE='/opt/homebrew/Caskroom/miniforge/base'
-source $CONDA_SOURCE'/etc/profile.d/conda.sh'
+CONDA_SOURCE="/opt/homebrew/Caskroom/miniforge/base"
+source "$CONDA_SOURCE/etc/profile.d/conda.sh"
 # Cambiar por el nombre del environment local!!!
 conda activate gv
 
-#FTYPE=( 'Historical' 'Future' )
-FTYPE=( 'Historical' )
-VARS=( 'tavg' 'tmax' 'tmin' 'prec' 'vapr' 'srad' )
-MONTH=( '01' '02' '03' '04' '05' '06' '07' '08' '09' '10' '11' '12' )
+# Datos generales.
+FTYPE=( "Historical" "Future" )
+EXTENT=( "Global" "Mexico" )
+FEXT=( "TIFF" "NC" )
+PATH_D="../data/WC/"
+FHEAD="wc2.1_"
+TIF=".tif"
+NC=".nc"
 
-PATH_D='../data/WC/'
-FHEAD='wc2.1_'
-TIF='.tif'
-NC='.nc'
+# Límites de México.
+mlon1="-118.390"
+mlon2="-86.660"
+mlat1="14.566"
+mlat2="32.737"
 
-echo 'Begin processing files.'
 
-for f in ${FTYPE[@]}
-do
-    for v in ${VARS[@]}
-    do
+echo "Begin processing files."
 
-        FNAME=$FHEAD$RES'_'$v
-        DIR_D=$PATH_D'TIFF/'$f'/'$FNAME'/'
+# Historical.
+VARS=( "tavg" "tmax" "tmin" "prec" "vapr" "srad" "elev" )
+echo ""
+echo "Historical variables"
+# Para todas las variables.
+for v in ${VARS[@]}; do
+
+    FNAME="$FHEAD$RES""_$v"
+    DIR_D="$PATH_D${FEXT[0]}/${EXTENT[0]}/${FTYPE[0]}/$RES/$FNAME/"
         
-        echo ''
-        echo 'Processing '$FNAME'...'
+    echo ""
+    echo "Processing ""$FNAME""..."
 
-        for m in ${MONTH[@]}
-        do
+    # Para todos los meses.
+    for FILE_D in $DIR_D*.tif; do
 
-            FILE_D=$DIR_D$FNAME'_'$m$TIF
-            DIR_R=$PATH_D'NC/'$FTYPE'/'$FNAME'/'
-            FILE_R=$DIR_R$FNAME'_'$m$NC
+        NAME="${FILE_D##*/}"
+        NAME="${NAME%.*}"
 
-            mkdir -p $DIR_R
-            gdal_translate -q -of NetCDF $FILE_D $FILE_R
+        # Convertimos a netCDF.
+        DIR_R_1="$PATH_D${FEXT[1]}/${EXTENT[0]}/${FTYPE[0]}/$RES/$FNAME/"
+        FILE_R_1=$DIR_R_1$NAME$NC
+        mkdir -p $DIR_R_1
+        gdal_translate -q -of NetCDF $FILE_D $FILE_R_1
 
+        # Recortamos el contorno de México.
+        DIR_R_2="$PATH_D${FEXT[1]}/${EXTENT[1]}/${FTYPE[0]}/$RES/$FNAME/"
+        FILE_R_2="$DIR_R_2""mexico_$NAME$NC"
+        mkdir -p $DIR_R_2
+        cdo -s sellonlatbox,$mlon1,$mlon2,$mlat1,$mlat2 $FILE_R_1 $FILE_R_2
+    
     done
 
-    echo $FNAME' processed.'
+    echo "$FNAME processed."
 
-    done
-
-    v='elev'
-    FNAME=$FHEAD$RES'_'$v
-    DIR_D=$PATH_D'TIFF/'$f'/'
-    FILE_D=$DIR_D$FNAME$TIF
-    DIR_R=$PATH_D'NC/'$FTYPE'/'
-    FILE_R=$DIR_R$FNAME$NC
-
-    echo ''
-    echo 'Processing '$FNAME'...'
-
-    mkdir -p $DIR_R
-    gdal_translate -q -of NetCDF $FILE_D $FILE_R
-
-    echo ''
-    echo $FNAME' processed.'
 done
 
-echo ''
-echo 'All files processed.'
+# Future.
+VARS=( "tavg" "tmax" "tmin" "prec" "bioc" )
+SSP=( '126' '245' '370' '585' )
+echo ""
+echo "Future variables"
+# Para todas las variables.
+for v in ${VARS[@]}; do
+# Para todos los RCP.
+    for s in ${SSP[@]}; do
+
+        DIR_D="$PATH_D${FEXT[0]}/${EXTENT[0]}/${FTYPE[1]}/$RES/$v/ssp$s/"
+        
+        echo ""
+        echo "Processing $v""ssp$s/..."
+
+        # Para todos los periodos.
+        for FILE_D in $DIR_D*.tif; do
+
+            NAME="${FILE_D##*/}"
+            NAME="${NAME%.*}"
+
+            # Convertimos a netCDF.
+            DIR_R_1="$PATH_D${FEXT[1]}/${EXTENT[0]}/${FTYPE[0]}/$RES/$v/"
+            FILE_R_1=$DIR_R_1$NAME$NC
+            mkdir -p $DIR_R_1
+            gdal_translate -q -of NetCDF $FILE_D $FILE_R_1
+
+            # Recortamos el contorno de México.
+            DIR_R_2="$PATH_D${FEXT[1]}/${EXTENT[1]}/${FTYPE[0]}/$RES/$v/"
+            FILE_R_2="$DIR_R_2""mexico_$NAME$NC"
+            mkdir -p $DIR_R_2
+            cdo -s sellonlatbox,$mlon1,$mlon2,$mlat1,$mlat2 $FILE_R_1 $FILE_R_2
+    
+    done
+
+    echo "$FNAME processed."
+
+    done
+done
+
+echo ""
+echo "All files processed."
