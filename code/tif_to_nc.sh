@@ -1,4 +1,4 @@
-# Descarga toda la información de ERA5 para una variable.
+# Convierte de TIFF a netCDF y corta el área de México.
 
 # Stop at first error.
 set -e
