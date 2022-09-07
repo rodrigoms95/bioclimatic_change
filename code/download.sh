@@ -48,11 +48,7 @@ cd $DIR
 for v in ${VARS[@]}; do
     URL="https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_$RES""_$v.zip"
     wget $URL
+    # Descomprimimos y limpiamos.
+    unzip -q -d $v "wc2.1_$RES""_$v.zip" -x "*.txt"
+    rm -r *.zip
 done
-# Descomprimimos y limpiamos.
-for f in *.zip; do
-    FOLDER=${f%.*}
-    unzip -q -d $FOLDER $f -x "*.txt"
-    cd F
-done
-rm -r *.zip

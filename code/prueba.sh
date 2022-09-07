@@ -73,8 +73,8 @@ for v in ${VARS[@]}; do
 done
 
 # Future.
-VARS=( "tmax" "tmin" "prec" )
-SSP=( "126" "245" "370" "585" )
+VARS=( "tmax" )
+SSP=( '126' '245' '370' '585' )
 echo ""
 echo "Future variables"
 # Para todas las variables.
